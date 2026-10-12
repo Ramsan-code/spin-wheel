@@ -32,3 +32,39 @@ export function GiftBody() {
     </g>
   );
 }
+
+/**
+ * Wheel-segment gift (gift option 1): a tinted box with a slim ribbon and an
+ * outlined bow, drawn in a 100 × 100 box. Uses the gradients `pw-gshade` and
+ * `pw-glid`, which the wheel defines once in its <defs>.
+ */
+export function WheelGift({ box, ribbon }: { box: string; ribbon: string }) {
+  return (
+    <g>
+      <rect x="16" y="44" width="68" height="50" rx="4" fill={box} />
+      <rect x="16" y="44" width="68" height="50" rx="4" fill="url(#pw-gshade)" />
+      <rect x="16" y="44" width="68" height="5" fill="#000000" opacity="0.22" />
+      <rect x="47.5" y="44" width="5" height="50" fill={ribbon} />
+      <rect x="10" y="31" width="80" height="15" rx="3.5" fill={box} />
+      <rect x="10" y="31" width="80" height="15" rx="3.5" fill="url(#pw-glid)" />
+      <rect x="47.5" y="31" width="5" height="15" fill={ribbon} />
+      <path
+        d="M50 31 C 40 13, 25 16, 31 26 C 34 31, 44 31, 50 31 Z"
+        fill={ribbon}
+        fillOpacity="0.25"
+        stroke={ribbon}
+        strokeWidth="2.4"
+      />
+      <path
+        d="M50 31 C 60 13, 75 16, 69 26 C 66 31, 56 31, 50 31 Z"
+        fill={ribbon}
+        fillOpacity="0.25"
+        stroke={ribbon}
+        strokeWidth="2.4"
+      />
+      <circle cx="50" cy="30" r="4.2" fill={ribbon} />
+      <rect x="10.5" y="31.5" width="79" height="14" rx="3" fill="none" stroke="#ffffff" strokeOpacity="0.28" />
+      <rect x="16.5" y="44.5" width="67" height="49" rx="3.5" fill="none" stroke="#ffffff" strokeOpacity="0.18" />
+    </g>
+  );
+}
