@@ -7,6 +7,7 @@ import type { PublicPrize } from "@/lib/prizes";
 import { EASE_OUT_EXPO } from "./easing";
 import { GiftBody, GiftLid } from "./gift-art";
 import { PRIZE_ICONS } from "./icons";
+import { SpotlightFloor, Spotlights } from "./spotlights";
 import type { WheelSound } from "./use-wheel-sound";
 
 const OPEN_AT_MS = 1400;
@@ -20,8 +21,9 @@ type Props = {
 
 /**
  * Reward stage (after the SVGator "reward gift box" template), styled for a
- * financial brand: a calm float, the lid lifts, a soft beam of light, and the
- * prize rises in a glass medallion. No bounce, no confetti.
+ * financial brand: stage spotlights sweep onto the box, it floats once, the lid
+ * lifts, a soft beam of light, and the prize rises in a glass medallion.
+ * No bounce, no confetti.
  * Only shown right after a live spin, never server-rendered.
  */
 export function GiftBoxScene({ prize, sound, onDone }: Props) {
@@ -51,6 +53,9 @@ export function GiftBoxScene({ prize, sound, onDone }: Props) {
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center gap-10 px-4 py-12">
+      {/* stage spotlights (after the SVGator "logo reveal – stage spotlights") */}
+      <Spotlights />
+
       <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-ice/60">
         {opened ? (prize.win ? "Your reward" : "Result") : "Unlocking your reward"}
       </p>
@@ -71,6 +76,11 @@ export function GiftBoxScene({ prize, sound, onDone }: Props) {
           animate={{ opacity: opened ? 1 : 0 }}
           transition={{ duration: 0.8 }}
         />
+
+        {/* floor light where the opened box comes to rest (box bottom ≈ 92% of its height) */}
+        <div className="absolute left-1/2 top-[calc(50%+110px)] h-0 w-44 -translate-x-1/2 sm:top-[calc(50%+123px)] sm:w-52">
+          <SpotlightFloor />
+        </div>
 
         {/* prize medallion rising out of the box */}
         <motion.div

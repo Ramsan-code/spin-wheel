@@ -14,8 +14,8 @@ npm run dev   # http://localhost:3000
 |---|---|---|---|
 | 1 | Welcome | Liquid glass marketing intro, title card | `components/spin/intro-scene.tsx` |
 | 2 | Prize wheel | Custom SVG dial wheel (navy segments, line icons, tick bezel) | `components/spin/prize-wheel.tsx` |
-| 3 | Gift box opens | Reward gift box animation | `components/spin/gift-box-scene.tsx` |
-| 4 | Product reveal | Product showcase image reveal + stage spotlights | `components/spin/reveal-scene.tsx` |
+| 3 | Gift box opens | Reward gift box + stage spotlights | `components/spin/gift-box-scene.tsx` |
+| 4 | Product reveal | Product showcase, image reveal effect | `components/spin/reveal-scene.tsx` |
 
 Options in `components/spin/spin-experience.tsx`:
 

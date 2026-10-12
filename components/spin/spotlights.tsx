@@ -5,10 +5,10 @@ import { motion } from "motion/react";
 import { EASE_IN_OUT } from "./easing";
 
 /**
- * Stage spotlights behind the final reveal (after the SVGator "logo reveal –
+ * Stage spotlights behind the gift-box stage (after the SVGator "logo reveal –
  * stage spotlights" template), kept calm for a financial brand:
  * two cool beams sweep once from the top corners, cross, and settle on the
- * card, then drift very slightly. Only transforms/opacity animate, so it stays
+ * gift, then drift very slightly. Only transforms/opacity animate, so it stays
  * smooth on phones. With reduced motion the beams simply appear in place.
  */
 export function Spotlights() {
