@@ -9,7 +9,7 @@ import {
   useReducedMotion,
   type PanInfo,
 } from "motion/react";
-import { Loader2, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { HelpCircle, Loader2, RotateCw, Volume2, VolumeX } from "lucide-react";
 
 import { spinWheel, type SpinResult } from "@/app/actions";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import type { PublicPrize } from "@/lib/prizes";
 import { cn } from "@/lib/utils";
 import { EASE_SPIN } from "./easing";
 import { PRIZE_ICONS } from "./icons";
-import { useWheelSound } from "./use-wheel-sound";
+import type { WheelSound } from "./use-wheel-sound";
 
 type Phase = "idle" | "spinning" | "landed";
 
@@ -48,20 +48,29 @@ function geometry(width: number, count: number) {
   return { cardW, cardH, radius, cy, seg, height, pointer };
 }
 
+/** "mystery": face-down "?" cards, the product is revealed by the shuffle stage. */
+export type WheelFaces = "mystery" | "prizes";
+
 type Props = {
   prizes: PublicPrize[];
+  faces: WheelFaces;
+  sound: WheelSound;
+  soundOn: boolean;
+  onToggleSound: () => void;
   onLanded: (index: number) => void;
 };
 
-export function CardWheel({ prizes, onLanded }: Props) {
+// Card colours for mystery faces: fixed per position, unrelated to the prize.
+const MYSTERY_HUES = ["#3cfffc", "#8b7bff", "#ff6ad5", "#2b6cff"];
+
+export function CardWheel({ prizes, faces, sound, soundOn, onToggleSound, onLanded }: Props) {
   const reduce = useReducedMotion();
   const rotate = useMotionValue(0);
   const [width, setWidth] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
   const [message, setMessage] = useState("");
-  const [soundOn, setSoundOn] = useState(true);
-  const { unlock, tick, chime } = useWheelSound(soundOn);
+  const { unlock, tick } = sound;
 
   const busy = useRef(false);
   const dragStart = useRef<number | null>(null);
@@ -130,20 +139,12 @@ export function CardWheel({ prizes, onLanded }: Props) {
         await finished(animate(rotate, target, { type: "spring", stiffness: 260, damping: 15 }));
       }
 
-      const prize = prizes[index];
       setActive(index);
       setPhase("landed");
-      chime(prize.win);
-      setMessage(
-        result.ok
-          ? prize.win
-            ? `You won: ${prize.name}`
-            : "No prize this time."
-          : `You already spun. Your result: ${prize.name}`,
-      );
-      window.setTimeout(() => onLanded(index), reduce ? 300 : 1100);
+      setMessage(result.ok ? "The wheel has stopped. Revealing your card." : "You already spun. Revealing your result.");
+      window.setTimeout(() => onLanded(index), reduce ? 300 : 900);
     },
-    [phase, unlock, rotate, reduce, g.seg, prizes, chime, onLanded],
+    [phase, unlock, rotate, reduce, g.seg, onLanded],
   );
 
   // Drag the fan with a finger or mouse; a fast flick starts a real spin.
@@ -180,7 +181,7 @@ export function CardWheel({ prizes, onLanded }: Props) {
           size="icon"
           aria-pressed={soundOn}
           aria-label={soundOn ? "Mute sound" : "Turn sound on"}
-          onClick={() => setSoundOn((s) => !s)}
+          onClick={onToggleSound}
         >
           {soundOn ? <Volume2 aria-hidden /> : <VolumeX aria-hidden />}
         </Button>
@@ -221,6 +222,8 @@ export function CardWheel({ prizes, onLanded }: Props) {
                 <WheelCard
                   key={prize.id}
                   prize={prize}
+                  mystery={faces === "mystery"}
+                  number={i + 1}
                   angle={i * g.seg}
                   radius={g.radius}
                   width={g.cardW}
@@ -261,6 +264,8 @@ export function CardWheel({ prizes, onLanded }: Props) {
 
 function WheelCard({
   prize,
+  mystery,
+  number,
   angle,
   radius,
   width,
@@ -269,6 +274,8 @@ function WheelCard({
   landed,
 }: {
   prize: PublicPrize;
+  mystery: boolean;
+  number: number;
   angle: number;
   radius: number;
   width: number;
@@ -276,7 +283,10 @@ function WheelCard({
   active: boolean;
   landed: boolean;
 }) {
-  const Icon = PRIZE_ICONS[prize.icon];
+  // Mystery cards must not leak the prize through icon, label or colour.
+  const Icon = mystery ? HelpCircle : PRIZE_ICONS[prize.icon];
+  const hue = mystery ? MYSTERY_HUES[(number - 1) % MYSTERY_HUES.length] : prize.from;
+  const hue2 = mystery ? "#192034" : prize.to;
 
   return (
     <div
@@ -297,7 +307,7 @@ function WheelCard({
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
         style={{
           boxShadow: landed
-            ? `0 0 0 1px ${prize.from}, 0 0 60px -6px ${prize.from}, inset 0 1px 0 #ffffff80`
+            ? `0 0 0 1px ${hue}, 0 0 60px -6px ${hue}, inset 0 1px 0 #ffffff80`
             : undefined,
         }}
       >
@@ -305,23 +315,23 @@ function WheelCard({
         {/* colour glow behind the icon */}
         <div
           className="absolute -top-1/4 left-1/2 size-[120%] -translate-x-1/2 rounded-full opacity-60 blur-2xl"
-          style={{ background: `radial-gradient(closest-side, ${prize.from}, transparent)` }}
+          style={{ background: `radial-gradient(closest-side, ${hue}, transparent)` }}
         />
         <span className="relative self-start rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-ice/80">
-          {prize.win ? "Prize" : "Try"}
+          {mystery ? `No. ${number}` : prize.win ? "Prize" : "Try"}
         </span>
         <div
           className="relative grid place-items-center rounded-full border border-white/30 shadow-[inset_0_1px_0_#ffffff90,0_12px_30px_-10px_#000]"
           style={{
             width: width * 0.48,
             height: width * 0.48,
-            background: `linear-gradient(145deg, ${prize.from}, ${prize.to})`,
+            background: `linear-gradient(145deg, ${hue}, ${hue2})`,
           }}
         >
           <Icon className="text-white drop-shadow" style={{ width: width * 0.22, height: width * 0.22 }} />
         </div>
         <p className="relative text-balance text-center text-sm font-semibold leading-tight text-white sm:text-base">
-          {prize.short}
+          {mystery ? "Mystery prize" : prize.short}
         </p>
       </motion.div>
     </div>

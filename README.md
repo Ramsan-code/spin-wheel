@@ -10,11 +10,16 @@ npm run dev   # http://localhost:3000
 
 ## Flow
 
-| Scene | Inspired by (SVGator templates) | File |
-|---|---|---|
-| Welcome | Liquid glass marketing intro, title card | `components/spin/intro-scene.tsx` |
-| Spin | Liquid glass rotating fan of promo cards | `components/spin/card-wheel.tsx` |
-| Result | Split view product showcase + image reveal effect | `components/spin/reveal-scene.tsx` |
+| # | Stage | Inspired by (SVGator templates) | File |
+|---|---|---|---|
+| 1 | Welcome | Liquid glass marketing intro, title card | `components/spin/intro-scene.tsx` |
+| 2 | Spin wheel | Liquid glass rotating fan of promo cards | `components/spin/card-wheel.tsx` |
+| 3 | Shuffle ("confuse" before the win) | Liquid glass single card slider | `components/spin/shuffle-scene.tsx` |
+| 4 | Final reveal | Split view product showcase + image reveal effect | `components/spin/reveal-scene.tsx` |
+
+The wheel shows face-down "mystery" cards so the shuffle in stage 3 keeps the
+prize secret. Set `WHEEL_FACES = "prizes"` in `spin-experience.tsx` to show the
+prizes on the wheel instead. Returning visitors go straight to stage 4.
 
 All animation is written in code (no video files), so the wheel can land on any
 prize the server chooses.
