@@ -60,7 +60,7 @@ function Beam({ side }: { side: "left" | "right" }) {
       {/* blur sits on the parent: CSS applies filter before clip-path, so blurring
           the clipped element itself would leave hard edges */}
       <motion.div
-        className="size-full origin-top mix-blend-screen blur-[18px]"
+        className="size-full origin-top blur-[18px]"
         animate={{ rotate: [0, s * 2.5, 0] }}
         transition={{ delay: 1.8, duration: 7, repeat: Infinity, ease: "easeInOut" }}
       >

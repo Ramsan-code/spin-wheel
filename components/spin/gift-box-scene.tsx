@@ -105,12 +105,13 @@ export function GiftBoxScene({ prize, sound, onDone }: Props) {
           animate={opened ? { y: 36, opacity: 1 } : { y: [24, 0, -6, 0], opacity: 1 }}
           transition={opened ? { duration: 0.7, ease: EASE_OUT_EXPO } : { duration: 1.3, ease: "easeInOut" }}
         >
-          {/* edge glow pulse just before opening */}
+          {/* edge glow pulse just before opening, sized to the box body
+              (gift-art body spans x 15–85 %, y 41–92 % of the drawing) */}
           <motion.div
             aria-hidden
-            className="absolute inset-[12%] rounded-md shadow-[0_0_40px_-6px_#3cfffc]"
+            className="absolute inset-x-[15%] bottom-[8%] top-[41%] rounded-[3px] shadow-[0_0_40px_-6px_#3cfffc]"
             initial={{ opacity: 0 }}
-            animate={{ opacity: opened ? 0.25 : [0, 0, 0.8] }}
+            animate={{ opacity: opened ? 0 : [0, 0, 0.8] }}
             transition={{ duration: opened ? 0.6 : 1.3 }}
           />
           <svg
