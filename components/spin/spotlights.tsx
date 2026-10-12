@@ -16,15 +16,31 @@ export function Spotlights() {
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       <Beam side="left" />
       <Beam side="right" />
-
-      {/* pool of light on the "floor" under the card */}
-      <motion.div
-        className="absolute bottom-[4%] left-1/2 h-[18%] w-[min(90vw,900px)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,#ddf5ff2e,#3cfffc0f_55%,transparent)] blur-xl"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 1.2 }}
-      />
     </div>
+  );
+}
+
+/**
+ * Floor under the card: a pool of light, a thin highlight where the light meets
+ * the floor, and a soft contact shadow so the card sits on it. Render inside a
+ * relative wrapper around the card so it follows the card's size on any screen.
+ */
+export function SpotlightFloor() {
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1.2, duration: 1.2 }}
+    >
+      {/* pool of light */}
+      <div className="absolute left-1/2 top-[-28px] h-36 w-[118%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,#ddf5ff6b,#3cfffc29_45%,transparent)] blur-2xl" />
+      {/* contact shadow right under the card edge */}
+      <div className="absolute left-1/2 top-[-10px] h-6 w-[86%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-lg" />
+      {/* thin floor highlight */}
+      <div className="absolute left-1/2 top-[26px] h-px w-[78%] -translate-x-1/2 bg-[linear-gradient(90deg,transparent,#ddf5ff59,transparent)]" />
+    </motion.div>
   );
 }
 
