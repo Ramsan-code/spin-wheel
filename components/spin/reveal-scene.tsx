@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import type { PublicPrize } from "@/lib/prizes";
 import { EASE_IN_OUT, EASE_OUT_EXPO } from "./easing";
 import { PRIZE_ICONS } from "./icons";
+import { Spotlights } from "./spotlights";
 
 type Props = {
   prize: PublicPrize;
@@ -19,7 +20,8 @@ type Props = {
 
 // Final result: split-view product card (after the SVGator "split view
 // product showcase") whose visual side is uncovered by a sliding panel
-// (after "product showcase – image reveal effect").
+// (after "product showcase – image reveal effect"), lit by stage spotlights
+// (after "logo reveal – stage spotlights").
 export function RevealScene({ prize, returning, showDevReset, onReset, resetting }: Props) {
   const Icon = PRIZE_ICONS[prize.icon];
 
@@ -34,6 +36,7 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
 
   return (
     <div className="relative flex min-h-dvh items-center justify-center px-4 py-12">
+      <Spotlights />
 
       <motion.article
         initial={{ opacity: 0, scale: 0.92, rotateX: 18, y: 30 }}
