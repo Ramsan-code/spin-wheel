@@ -1,6 +1,6 @@
 # Spin to Unlock
 
-A liquid-glass round prize wheel for Next.js 16 (App Router, React 19, TypeScript),
+A premium, liquid-glass round prize wheel for Next.js 16 (App Router, React 19, TypeScript),
 built with Tailwind CSS 4, shadcn/ui, Motion (`motion/react`) and Lucide icons.
 
 ```bash
@@ -13,14 +13,15 @@ npm run dev   # http://localhost:3000
 | # | Stage | Inspired by (SVGator templates) | File |
 |---|---|---|---|
 | 1 | Welcome | Liquid glass marketing intro, title card | `components/spin/intro-scene.tsx` |
-| 2 | Round gift wheel | Custom SVG wheel (gift on every segment) | `components/spin/prize-wheel.tsx` |
+| 2 | Prize wheel | Custom SVG dial wheel (navy segments, line icons, tick bezel) | `components/spin/prize-wheel.tsx` |
 | 3 | Gift box opens | Reward gift box animation | `components/spin/gift-box-scene.tsx` |
 | 4 | Product reveal | Product showcase, image reveal effect | `components/spin/reveal-scene.tsx` |
 
 Options in `components/spin/spin-experience.tsx`:
 
-- `WHEEL_FACES = "gifts"` (default) draws a gift box on every segment, so the prize
-  stays a surprise until stage 3. `"prizes"` shows each prize's image or icon + name.
+- `WHEEL_FACES = "prizes"` (default) shows each prize's line icon (or image) and name.
+  `"gifts"` shows the same gift icon on every segment, so the prize stays a surprise
+  until stage 3.
 - `SHOW_SHUFFLE = true` adds the card-slider shuffle
   (`shuffle-scene.tsx`, liquid glass single card slider) between stages 2 and 3.
 

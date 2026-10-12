@@ -20,11 +20,11 @@ export type IconKey =
 export type Prize = {
   id: string;
   name: string;
-  /** Short label printed on the wheel card. */
+  /** Short label printed on the wheel (keep to ~13 characters). */
   short: string;
   description: string;
   icon: IconKey;
-  /** Two colours for the card gradient / reveal panel. */
+  /** Two muted colours for the prize medallion / reveal panel. */
   from: string;
   to: string;
   /** false = "no prize" segment. */
@@ -52,22 +52,22 @@ export const PRIZES: Prize[] = [
   {
     id: "insights-report",
     name: "Market Insights Report",
-    short: "Insights Report",
+    short: "Insights",
     description: "Our quarterly macro and sector outlook, delivered to your inbox.",
     icon: "report",
-    from: "#3cfffc",
-    to: "#2b6cff",
+    from: "#0e3a4a",
+    to: "#1c7c8c",
     win: true,
     weight: 22,
   },
   {
     id: "strategy-session",
     name: "1:1 Strategy Session",
-    short: "Strategy Session",
+    short: "Strategy Call",
     description: "30 minutes with one of our market analysts to review your plan.",
     icon: "session",
-    from: "#8b7bff",
-    to: "#ff6ad5",
+    from: "#1a2240",
+    to: "#3a4a8c",
     win: true,
     weight: 6,
   },
@@ -77,8 +77,8 @@ export const PRIZES: Prize[] = [
     short: "Pro Charts",
     description: "Advanced indicators and multi-chart layouts for 30 days.",
     icon: "charts",
-    from: "#00e0a4",
-    to: "#3cfffc",
+    from: "#0d3b36",
+    to: "#1f7a6a",
     win: true,
     weight: 14,
   },
@@ -88,8 +88,8 @@ export const PRIZES: Prize[] = [
     short: "Masterclass",
     description: "A seat in our next live risk-management masterclass.",
     icon: "masterclass",
-    from: "#ffb86b",
-    to: "#ff6ad5",
+    from: "#231f3a",
+    to: "#55488a",
     win: true,
     weight: 10,
   },
@@ -99,8 +99,8 @@ export const PRIZES: Prize[] = [
     short: "Hoodie",
     description: "A heavyweight hoodie from our member collection.",
     icon: "merch",
-    from: "#ddf5ff",
-    to: "#8b7bff",
+    from: "#1c2333",
+    to: "#4a5578",
     win: true,
     weight: 4,
   },
@@ -110,19 +110,19 @@ export const PRIZES: Prize[] = [
     short: "Calendar Pro",
     description: "Real-time event alerts and consensus forecasts for 30 days.",
     icon: "calendar",
-    from: "#2b6cff",
-    to: "#8b7bff",
+    from: "#142a52",
+    to: "#2b5aa8",
     win: true,
     weight: 14,
   },
   {
     id: "so-close",
     name: "So Close",
-    short: "So Close",
+    short: "Try Again",
     description: "No prize this time. Keep an eye out for the next campaign.",
     icon: "retry",
-    from: "#192034",
-    to: "#4a5578",
+    from: "#151b2b",
+    to: "#2a3248",
     win: false,
     weight: 20,
   },
@@ -132,8 +132,8 @@ export const PRIZES: Prize[] = [
     short: "VIP Webinar",
     description: "Access to our members-only weekly market webinar.",
     icon: "webinar",
-    from: "#ff6ad5",
-    to: "#3cfffc",
+    from: "#2d2a1e",
+    to: "#8a7340",
     win: true,
     weight: 10,
   },

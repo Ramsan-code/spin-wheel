@@ -1,52 +1,34 @@
-// Gift box illustration as plain SVG shapes, drawn in a 100 × 100 box.
-// No gradient ids (React's useId format is not always safe inside url(#…)),
-// so depth comes from translucent highlight and shadow shapes instead.
+// Premium gift box: matte navy with hairline edges and a thin aqua ribbon.
+// Drawn in a 100 × 100 box. Plain shapes only (no gradient ids), so it can be
+// rendered any number of times on a page.
 
-export type GiftColors = {
-  /** Box colour. */
-  box: string;
-  /** Ribbon and bow colour. */
-  ribbon: string;
-};
+const NAVY = "#0f182b";
+const LID = "#141f37";
+const EDGE = "#ddf5ff";
+const RIBBON = "#3cfffc";
 
-/** Lid + bow. Separate from the body so the gift-box stage can pop it off. */
-export function GiftLid({ box, ribbon }: GiftColors) {
+/** Lid + bow. Separate from the body so the reward stage can lift it. */
+export function GiftLid() {
   return (
     <g>
-      {/* bow loops */}
-      <path d="M50 25 C 38 4, 20 12, 36 25 Z" fill={ribbon} />
-      <path d="M50 25 C 62 4, 80 12, 64 25 Z" fill={ribbon} />
-      <path d="M50 25 C 41 10, 29 14, 38 23" fill="none" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="1.6" />
-      <circle cx="50" cy="24" r="5.5" fill={ribbon} stroke="#ffffff" strokeOpacity="0.5" strokeWidth="1" />
-      {/* lid */}
-      <rect x="8" y="26" width="84" height="16" rx="5" fill={box} />
-      <rect x="8" y="26" width="84" height="6" rx="3" fill="#ffffff" opacity="0.35" />
-      <rect x="44" y="26" width="12" height="16" fill={ribbon} />
+      {/* minimal bow: two outlined loops */}
+      <path d="M50 27 C 42 14, 30 15, 34 23 C 36 27, 44 27, 50 27 Z" fill="none" stroke={RIBBON} strokeWidth="1.6" />
+      <path d="M50 27 C 58 14, 70 15, 66 23 C 64 27, 56 27, 50 27 Z" fill="none" stroke={RIBBON} strokeWidth="1.6" />
+      <rect x="10" y="28" width="80" height="13" rx="2.5" fill={LID} stroke={EDGE} strokeOpacity="0.35" strokeWidth="0.8" />
+      <rect x="10.5" y="28.5" width="79" height="3" rx="1.5" fill="#ffffff" opacity="0.08" />
+      <rect x="48.5" y="28" width="3" height="13" fill={RIBBON} />
     </g>
   );
 }
 
-export function GiftBody({ box, ribbon }: GiftColors) {
+export function GiftBody() {
   return (
     <g>
-      <rect x="14" y="40" width="72" height="54" rx="6" fill={box} />
-      {/* shade under the lid and on the right side */}
-      <rect x="14" y="40" width="72" height="7" fill="#000000" opacity="0.18" />
-      <rect x="66" y="40" width="20" height="54" rx="6" fill="#000000" opacity="0.12" />
-      {/* glossy highlight */}
-      <rect x="20" y="50" width="8" height="36" rx="4" fill="#ffffff" opacity="0.35" />
-      <rect x="44" y="40" width="12" height="54" fill={ribbon} />
-      <rect x="44" y="40" width="4" height="54" fill="#ffffff" opacity="0.3" />
-    </g>
-  );
-}
-
-/** Complete closed gift, for the wheel segments. */
-export function Gift(props: GiftColors) {
-  return (
-    <g>
-      <GiftBody {...props} />
-      <GiftLid {...props} />
+      <rect x="15" y="41" width="70" height="51" rx="2.5" fill={NAVY} stroke={EDGE} strokeOpacity="0.3" strokeWidth="0.8" />
+      {/* soft vertical sheen */}
+      <rect x="21" y="45" width="5" height="43" rx="2.5" fill="#ffffff" opacity="0.06" />
+      <rect x="15" y="41" width="70" height="4" fill="#000000" opacity="0.25" />
+      <rect x="48.5" y="41" width="3" height="51" fill={RIBBON} />
     </g>
   );
 }

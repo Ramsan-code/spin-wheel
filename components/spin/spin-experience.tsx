@@ -16,15 +16,15 @@ import { useWheelSound } from "./use-wheel-sound";
 /**
  * Stage order:
  *   1. intro   – welcome title card         (SVGator: liquid glass marketing intro)
- *   2. wheel   – round wheel of gifts        (custom SVG + Motion)
+ *   2. wheel   – round prize wheel           (custom SVG + Motion)
  *   (optional) shuffle – single card slider (SVGator: liquid glass single card slider)
  *   3. gift    – gift box bounces open       (SVGator: reward gift box)
  *   4. reveal  – final prize showcase        (SVGator: product showcase image reveal)
  */
 type Scene = "intro" | "wheel" | "shuffle" | "gift" | "reveal";
 
-/** "gifts" = a gift box on every segment; "prizes" = prize image/icon + name. */
-const WHEEL_FACES: WheelFaces = "gifts";
+/** "prizes" = each segment shows its prize icon/image + name; "gifts" = same gift icon everywhere. */
+const WHEEL_FACES: WheelFaces = "prizes";
 /** Turn on to add the card-slider shuffle between the wheel and the gift box. */
 const SHOW_SHUFFLE = false;
 

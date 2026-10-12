@@ -9,37 +9,31 @@ import {
   useReducedMotion,
   type PanInfo,
 } from "motion/react";
-import { Loader2, Volume2, VolumeX } from "lucide-react";
+import { Gift, Loader2, Volume2, VolumeX } from "lucide-react";
 
 import { spinWheel, type SpinResult } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import type { PublicPrize } from "@/lib/prizes";
 import { cn } from "@/lib/utils";
 import { EASE_SPIN } from "./easing";
-import { Gift } from "./gift-art";
 import { PRIZE_ICONS } from "./icons";
 import type { WheelSound } from "./use-wheel-sound";
 
 /**
- * "gifts":  every segment shows a gift box, so the prize stays a surprise
- *           until the gift-box stage.
- * "prizes": segments show the prize image (prize.image) or its icon + name.
+ * "prizes" (default): each segment shows the prize's line icon (or image) and name.
+ * "gifts":  every segment shows the same gift icon, so the prize stays a surprise.
  */
-export type WheelFaces = "gifts" | "prizes";
+export type WheelFaces = "prizes" | "gifts";
 
 type Phase = "idle" | "spinning" | "landed";
 
 const TURNS = 6;
-const R = 170; // segment radius in SVG units (viewBox -R..R)
-const LIGHTS = 16;
-
-// Segment colours (alternating) and the gift colours drawn on each.
-const SEGMENTS = [
-  { fill: "#0e7c8c", box: "#ddf5ff", ribbon: "#ff6ad5" },
-  { fill: "#3b2f8f", box: "#3cfffc", ribbon: "#ffffff" },
-  { fill: "#8a2a6f", box: "#ffd36b", ribbon: "#3b2f8f" },
-  { fill: "#16306b", box: "#ff6ad5", ribbon: "#ddf5ff" },
-];
+const VB = 210; // viewBox half-size for the full dial
+const R = 170; // segment radius
+const INSET = `${((VB - R) / (VB * 2)) * 100}%`; // where the rotating disc sits
+const SEG_FILLS = ["#101b31", "#0c1424"];
+const ICE = "#ddf5ff";
+const AQUA = "#3cfffc";
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
@@ -52,6 +46,12 @@ const finished = (controls: { then: (resolve: () => void) => unknown }) =>
 function polar(r: number, deg: number) {
   const a = (deg * Math.PI) / 180;
   return { x: r * Math.sin(a), y: -r * Math.cos(a) };
+}
+
+function wedge(r: number, from: number, to: number) {
+  const p0 = polar(r, from);
+  const p1 = polar(r, to);
+  return `M0 0 L${p0.x} ${p0.y} A${r} ${r} 0 0 1 ${p1.x} ${p1.y} Z`;
 }
 
 /** Pointer angle (deg, clockwise from top) relative to an element's centre. */
@@ -75,6 +75,7 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
   const rotate = useMotionValue(0);
   const pointerTilt = useMotionValue(0);
   const [phase, setPhase] = useState<Phase>("idle");
+  const [landed, setLanded] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const { unlock, tick } = sound;
 
@@ -84,8 +85,9 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
   const lastIdx = useRef(0);
   const dirRef = useRef<1 | -1>(1);
   const drag = useRef<{ rect: DOMRect; last: number } | null>(null);
+  const wheelRef = useRef<HTMLDivElement>(null);
 
-  // Tick + flick the pointer each time a new segment passes under it.
+  // Tick + nudge the pointer each time a new segment passes under it.
   useMotionValueEvent(rotate, "change", (v) => {
     const idx = mod(Math.round(-v / seg), n);
     if (idx === lastIdx.current) return;
@@ -93,8 +95,8 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
     if (!busy.current && !drag.current) return;
     tick();
     if (!reduce) {
-      pointerTilt.set(-dirRef.current * 22);
-      animate(pointerTilt, 0, { type: "spring", stiffness: 520, damping: 14 });
+      pointerTilt.set(-dirRef.current * 10);
+      animate(pointerTilt, 0, { type: "spring", stiffness: 600, damping: 18 });
     }
   });
 
@@ -110,7 +112,7 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
       const start = rotate.get();
       const windUp = reduce
         ? Promise.resolve()
-        : finished(animate(rotate, start - dir * 10, { duration: 0.35, ease: "easeOut" }));
+        : finished(animate(rotate, start - dir * 8, { duration: 0.35, ease: "easeOut" }));
 
       let result: SpinResult;
       try {
@@ -128,7 +130,7 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
       const desired = -index * seg;
       const delta = dir > 0 ? mod(desired - current, 360) : -mod(current - desired, 360);
       // Land somewhere inside the segment, not always dead centre (cosmetic only).
-      const jitter = (Math.random() - 0.5) * seg * 0.5;
+      const jitter = (Math.random() - 0.5) * seg * 0.45;
       const target = current + dir * 360 * TURNS + delta + jitter;
 
       if (reduce) {
@@ -137,11 +139,19 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
         await finished(animate(rotate, target, { duration: 5.6, ease: EASE_SPIN }));
       }
 
+      setLanded(index);
       setPhase("landed");
-      setMessage(result.ok ? "The wheel has stopped. Opening your gift." : "You already spun. Opening your result.");
-      window.setTimeout(() => onLanded(index), reduce ? 300 : 900);
+      const prize = prizes[index];
+      setMessage(
+        result.ok
+          ? prize.win
+            ? `The wheel stopped on ${prize.name}.`
+            : "The wheel stopped. No prize this time."
+          : `You already spun. Your result: ${prize.name}.`,
+      );
+      window.setTimeout(() => onLanded(index), reduce ? 300 : 1100);
     },
-    [phase, unlock, rotate, reduce, seg, onLanded],
+    [phase, unlock, rotate, reduce, seg, prizes, onLanded],
   );
 
   // Circular drag: the wheel follows the finger around its centre.
@@ -165,11 +175,10 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
     const d = drag.current;
     drag.current = null;
     if (!d) return;
-    // Tangential speed of the release: positive = clockwise.
+    // Tangential speed at release: positive = clockwise.
     const rx = e.clientX - (d.rect.left + d.rect.width / 2);
     const ry = e.clientY - (d.rect.top + d.rect.height / 2);
-    const len = Math.hypot(rx, ry) || 1;
-    const tangential = (rx * info.velocity.y - ry * info.velocity.x) / len;
+    const tangential = (rx * info.velocity.y - ry * info.velocity.x) / (Math.hypot(rx, ry) || 1);
     if (Math.abs(tangential) > 400) {
       void spin(tangential > 0 ? 1 : -1);
     } else {
@@ -177,13 +186,11 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
     }
   };
 
-  const wheelRef = useRef<HTMLDivElement>(null);
-
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-6 px-4 py-10">
+    <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-7 px-4 py-10">
       <div className="flex w-full max-w-sm items-center justify-between">
-        <div className="glass relative rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-ice/85">
-          <span className="glass-sheen" />1 free spin
+        <div className="glass relative rounded-full px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ice/80">
+          <span className="glass-sheen" />1 complimentary spin
         </div>
         <Button
           variant="glass"
@@ -196,15 +203,14 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
         </Button>
       </div>
 
-      {/* tilted stage = the 3D look; one static transform */}
-      <div className="w-[min(88vw,440px)] [perspective:1100px]">
+      <div className="w-[min(90vw,460px)] [perspective:1200px]">
         <motion.div
           ref={wheelRef}
           role="group"
           aria-roledescription="prize wheel"
-          aria-label={`Prize wheel with ${n} gifts`}
+          aria-label={`Prize wheel with ${n} rewards`}
           className={cn(
-            "relative aspect-square w-full select-none [touch-action:none] [transform:rotateX(10deg)]",
+            "relative aspect-square w-full select-none [touch-action:none] [transform:rotateX(8deg)]",
             phase === "idle" ? "cursor-grab active:cursor-grabbing" : "cursor-default",
           )}
           onPanStart={onPanStart}
@@ -212,72 +218,90 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
           onPanEnd={onPanEnd}
         >
           {/* floor shadow */}
-          <div className="absolute -bottom-[7%] left-[12%] h-[10%] w-[76%] rounded-[50%] bg-black/60 blur-xl" />
+          <div className="absolute -bottom-[6%] left-[14%] h-[9%] w-[72%] rounded-[50%] bg-black/70 blur-2xl" />
 
-          {/* glass rim (static, so its backdrop blur costs nothing per frame) */}
-          <div className="glass absolute inset-0 rounded-full">
-            <span className="glass-sheen" />
-          </div>
+          {/* real backdrop blur, on a static layer only */}
+          <div className="glass absolute inset-[2%] rounded-full" />
 
-          {/* rim lights */}
-          {Array.from({ length: LIGHTS }, (_, i) => {
-            const p = polar(46.6, (i * 360) / LIGHTS);
-            return (
-              <span
-                key={i}
-                aria-hidden
-                className={cn(
-                  "absolute size-[3.2%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ice shadow-[0_0_10px_2px_#3cfffc]",
-                  "animate-[twinkle_1.1s_ease-in-out_infinite]",
-                  i % 2 && "[animation-delay:0.55s]",
-                )}
-                style={{ left: `${50 + p.x}%`, top: `${50 + p.y}%` }}
-              />
-            );
-          })}
+          {/* bezel: dial ticks + rim (static) */}
+          <svg viewBox={`${-VB} ${-VB} ${VB * 2} ${VB * 2}`} className="absolute inset-0 size-full" aria-hidden>
+            <defs>
+              <radialGradient id="pw-bezel" cx="0.35" cy="0.2" r="0.9">
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.14" />
+                <stop offset="0.6" stopColor="#ffffff" stopOpacity="0.03" />
+                <stop offset="1" stopColor="#ffffff" stopOpacity="0.07" />
+              </radialGradient>
+            </defs>
+            <circle r={200} fill="url(#pw-bezel)" stroke="#ffffff" strokeOpacity={0.16} />
+            {Array.from({ length: 72 }, (_, i) => {
+              const major = i % 9 === 0;
+              const a = polar(major ? 181 : 185, i * 5);
+              const b = polar(193, i * 5);
+              return (
+                <line
+                  key={i}
+                  x1={a.x}
+                  y1={a.y}
+                  x2={b.x}
+                  y2={b.y}
+                  stroke={ICE}
+                  strokeOpacity={major ? 0.55 : 0.2}
+                  strokeWidth={major ? 1.4 : 1}
+                />
+              );
+            })}
+            <circle r={R + 4} fill="#060b16" stroke={AQUA} strokeOpacity={0.35} />
+          </svg>
 
-          {/* rotating segments */}
-          <motion.div
-            className="absolute inset-[7%] rounded-full shadow-[inset_0_0_0_3px_#ffffff40,0_0_40px_-10px_#3cfffc]"
-            style={{ rotate, willChange: "transform" }}
-          >
+          {/* aqua glow while spinning */}
+          <div
+            aria-hidden
+            className={cn(
+              "absolute rounded-full shadow-[0_0_50px_-6px_#3cfffc] transition-opacity duration-700",
+              phase === "spinning" ? "opacity-70" : "opacity-0",
+            )}
+            style={{ inset: INSET }}
+          />
+
+          {/* rotating disc */}
+          <motion.div className="absolute rounded-full" style={{ inset: INSET, rotate, willChange: "transform" }}>
             <svg viewBox={`${-R} ${-R} ${R * 2} ${R * 2}`} className="size-full overflow-visible" aria-hidden>
               {prizes.map((prize, i) => {
                 const a = i * seg;
-                const p0 = polar(R, a - seg / 2);
-                const p1 = polar(R, a + seg / 2);
-                const colors = SEGMENTS[i % SEGMENTS.length];
-                const Icon = PRIZE_ICONS[prize.icon];
-                // Gift art has ~8% padding, so it can be a little wider than the chord.
-                const size = Math.min(96, 2 * R * 0.62 * Math.sin((seg * Math.PI) / 360) * 1.12);
+                const edge = polar(R, a - seg / 2);
+                const Icon = faces === "gifts" ? Gift : PRIZE_ICONS[prize.icon];
+                const dim = faces === "prizes" && !prize.win;
                 return (
                   <g key={prize.id}>
-                    <path
-                      d={`M0 0 L${p0.x} ${p0.y} A${R} ${R} 0 0 1 ${p1.x} ${p1.y} Z`}
-                      fill={colors.fill}
-                      stroke="#ffffff"
-                      strokeOpacity={0.35}
-                      strokeWidth={1.5}
-                    />
-                    <g transform={`rotate(${a}) translate(0 ${-R * 0.62})`}>
-                      {faces === "gifts" ? (
-                        <g transform={`translate(${-size / 2} ${-size / 2}) scale(${size / 100})`}>
-                          <Gift box={colors.box} ribbon={colors.ribbon} />
-                        </g>
-                      ) : prize.image ? (
-                        <image
-                          href={prize.image}
-                          x={-size / 2}
-                          y={-size / 2 - 8}
-                          width={size}
-                          height={size}
-                          preserveAspectRatio="xMidYMid meet"
-                        />
-                      ) : (
-                        <Icon x={-16} y={-30} width={32} height={32} color="#ffffff" strokeWidth={1.8} />
-                      )}
+                    <path d={wedge(R, a - seg / 2, a + seg / 2)} fill={SEG_FILLS[i % 2]} />
+                    <line x1={0} y1={0} x2={edge.x} y2={edge.y} stroke={ICE} strokeOpacity={0.16} />
+                    <g transform={`rotate(${a})`} opacity={dim ? 0.55 : 1}>
+                      <g transform={`translate(0 ${-R * 0.8})`}>
+                        {faces === "prizes" && prize.image ? (
+                          <image
+                            href={prize.image}
+                            x={-16}
+                            y={-16}
+                            width={32}
+                            height={32}
+                            preserveAspectRatio="xMidYMid meet"
+                          />
+                        ) : (
+                          <Icon x={-11} y={-11} width={22} height={22} color={ICE} strokeWidth={1.5} />
+                        )}
+                      </g>
+                      {/* Labels read outward from the centre, like a dial; keep them short. */}
                       {faces === "prizes" && (
-                        <text y={size / 2 + 4} textAnchor="middle" fill="#ffffff" fontSize="12" fontWeight="600">
+                        <text
+                          transform={`translate(0 ${-R * 0.53}) rotate(-90)`}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill={ICE}
+                          fillOpacity={0.88}
+                          fontSize={10.5}
+                          fontWeight={500}
+                          letterSpacing={0.4}
+                        >
                           {prize.short}
                         </text>
                       )}
@@ -285,46 +309,67 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
                   </g>
                 );
               })}
+              {landed !== null && (
+                <path
+                  d={wedge(R - 2, landed * seg - seg / 2, landed * seg + seg / 2)}
+                  fill={AQUA}
+                  fillOpacity={0.1}
+                  stroke={AQUA}
+                  strokeWidth={1.5}
+                />
+              )}
             </svg>
           </motion.div>
 
-          {/* static gloss over the segments: makes the wheel read as glass */}
-          <div
+          {/* static gloss + inner hub ring over the disc */}
+          <svg
+            viewBox={`${-VB} ${-VB} ${VB * 2} ${VB * 2}`}
+            className="pointer-events-none absolute inset-0 size-full"
             aria-hidden
-            className="pointer-events-none absolute inset-[7%] rounded-full bg-[radial-gradient(120%_70%_at_30%_10%,#ffffff55,transparent_45%),radial-gradient(closest-side,transparent_78%,#02091766)] mix-blend-screen"
-          />
+          >
+            <defs>
+              <radialGradient id="pw-gloss" cx="0.3" cy="0.08" r="0.7">
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.2" />
+                <stop offset="0.5" stopColor="#ffffff" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <circle r={R} fill="url(#pw-gloss)" />
+            <circle r={R * 0.31} fill="#070d1a" stroke={ICE} strokeOpacity={0.14} />
+          </svg>
 
-          {/* pointer: ticks back on every segment */}
+          {/* pointer */}
           <motion.div
             aria-hidden
-            className="absolute left-1/2 top-[-3%] z-10 -ml-[5%] w-[10%] origin-[50%_20%]"
-            style={{ rotate: pointerTilt }}
+            className="absolute left-1/2 z-10 -ml-[2.5%] w-[5%] origin-top"
+            style={{ top: `${((VB - R - 16) / (VB * 2)) * 100}%`, rotate: pointerTilt }}
           >
-            <svg viewBox="0 0 40 52" className="w-full overflow-visible drop-shadow-[0_6px_10px_rgba(0,0,0,0.6)]">
-              <path d="M20 50 L4 14 A16 16 0 1 1 36 14 Z" fill="#ddf5ff" stroke="#3cfffc" strokeWidth="2" />
-              <circle cx="20" cy="15" r="6" fill="#3cfffc" />
+            <svg viewBox="0 0 18 30" className="w-full overflow-visible drop-shadow-[0_0_8px_#3cfffc99]">
+              <path d="M9 30 L0 0 L18 0 Z" fill={ICE} stroke={AQUA} strokeWidth="1.2" />
             </svg>
           </motion.div>
 
-          {/* hub = the Spin button */}
+          {/* hub = Spin button */}
           <button
             type="button"
             onClick={() => void spin(1)}
             disabled={phase !== "idle"}
             className={cn(
-              "glass absolute left-1/2 top-1/2 z-10 grid size-[24%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full",
-              "text-sm font-bold uppercase tracking-widest text-white outline-none transition-transform sm:text-base",
-              "focus-visible:ring-4 focus-visible:ring-aqua/60 enabled:hover:scale-105 enabled:active:scale-95 disabled:opacity-90",
-              phase === "idle" && "shadow-[0_0_30px_-4px_#3cfffc]",
+              "absolute left-1/2 top-1/2 z-10 grid size-[19.5%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full",
+              "border border-aqua/60 bg-[radial-gradient(circle_at_35%_25%,#ffffff38,#ffffff0a_70%)] backdrop-blur-md",
+              "text-[11px] font-semibold uppercase tracking-[0.3em] text-white outline-none transition-[scale,box-shadow] duration-200 sm:text-xs",
+              "focus-visible:ring-4 focus-visible:ring-aqua/50 enabled:hover:scale-105 enabled:hover:shadow-[0_0_24px_-4px_#3cfffc] enabled:active:scale-95",
             )}
           >
-            <span className="glass-sheen" />
-            {phase === "spinning" ? <Loader2 aria-hidden className="size-6 animate-spin" /> : phase === "idle" ? "Spin" : "Done"}
+            {phase === "spinning" ? (
+              <Loader2 aria-hidden className="size-5 animate-spin text-aqua" />
+            ) : (
+              <span className="pl-[0.3em]">{phase === "idle" ? "Spin" : "Done"}</span>
+            )}
           </button>
         </motion.div>
       </div>
 
-      <p className="text-xs text-ice/55">Tap Spin, or drag the wheel and let go</p>
+      <p className="text-xs tracking-wide text-ice/50">Tap Spin, or drag the wheel and release</p>
       <p aria-live="polite" className="sr-only">
         {message}
       </p>

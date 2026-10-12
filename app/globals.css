@@ -102,26 +102,6 @@
   mix-blend-mode: screen;
 }
 
-/* Wheel rim lights. */
-@keyframes twinkle {
-  0%,
-  100% {
-    opacity: 1;
-    scale: 1;
-  }
-  50% {
-    opacity: 0.35;
-    scale: 0.75;
-  }
-}
-
-/* Light rays behind the opened gift. */
-@keyframes rays-spin {
-  to {
-    rotate: 360deg;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
