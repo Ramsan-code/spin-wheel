@@ -77,6 +77,9 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
   const [phase, setPhase] = useState<Phase>("idle");
   const [landed, setLanded] = useState<number | null>(null);
   const [message, setMessage] = useState("");
+  // Segment under the pointer, shown upright below the wheel (labels on a
+  // spinning wheel are often sideways or upside down).
+  const [current, setCurrent] = useState(0);
   const { unlock, tick } = sound;
 
   const n = prizes.length;
@@ -92,6 +95,7 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
     const idx = mod(Math.round(-v / seg), n);
     if (idx === lastIdx.current) return;
     lastIdx.current = idx;
+    setCurrent(idx);
     if (!busy.current && !drag.current) return;
     tick();
     if (!reduce) {
@@ -275,32 +279,37 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
                   <g key={prize.id}>
                     <path d={wedge(R, a - seg / 2, a + seg / 2)} fill={SEG_FILLS[i % 2]} />
                     <line x1={0} y1={0} x2={edge.x} y2={edge.y} stroke={ICE} strokeOpacity={0.16} />
-                    <g transform={`rotate(${a})`} opacity={dim ? 0.55 : 1}>
-                      <g transform={`translate(0 ${-R * 0.8})`}>
+                    <g transform={`rotate(${a})`} opacity={dim ? 0.78 : 1}>
+                      <g transform={`translate(0 ${-R * 0.855})`}>
                         {faces === "prizes" && prize.image ? (
                           <image
                             href={prize.image}
-                            x={-16}
-                            y={-16}
-                            width={32}
-                            height={32}
+                            x={-15}
+                            y={-15}
+                            width={30}
+                            height={30}
                             preserveAspectRatio="xMidYMid meet"
                           />
                         ) : (
-                          <Icon x={-11} y={-11} width={22} height={22} color={ICE} strokeWidth={1.5} />
+                          <Icon x={-13} y={-13} width={26} height={26} color={AQUA} strokeWidth={1.9} />
                         )}
                       </g>
-                      {/* Labels read outward from the centre, like a dial; keep them short. */}
+                      {/* Labels read outward from the centre, like a dial; keep them short.
+                          The dark outline (paint-order: stroke) is crisp, not a shadow,
+                          and keeps text sharp over any shading. */}
                       {faces === "prizes" && (
                         <text
-                          transform={`translate(0 ${-R * 0.53}) rotate(-90)`}
+                          transform={`translate(0 ${-R * 0.555}) rotate(-90)`}
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          fill={ICE}
-                          fillOpacity={0.88}
-                          fontSize={10.5}
-                          fontWeight={500}
-                          letterSpacing={0.4}
+                          fill="#ffffff"
+                          fontSize={12}
+                          fontWeight={600}
+                          letterSpacing={0.2}
+                          stroke="#070d1a"
+                          strokeWidth={2.5}
+                          strokeLinejoin="round"
+                          paintOrder="stroke"
                         >
                           {prize.short}
                         </text>
@@ -329,19 +338,19 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
           >
             <defs>
               <radialGradient id="pw-gloss" cx="0.3" cy="0.08" r="0.7">
-                <stop offset="0" stopColor="#ffffff" stopOpacity="0.2" />
+                <stop offset="0" stopColor="#ffffff" stopOpacity="0.07" />
                 <stop offset="0.5" stopColor="#ffffff" stopOpacity="0" />
               </radialGradient>
             </defs>
             <circle r={R} fill="url(#pw-gloss)" />
-            <circle r={R * 0.31} fill="#070d1a" stroke={ICE} strokeOpacity={0.14} />
+            <circle r={R * 0.27} fill="#070d1a" stroke={ICE} strokeOpacity={0.14} />
           </svg>
 
           {/* pointer */}
           <motion.div
             aria-hidden
             className="absolute left-1/2 z-10 -ml-[2.5%] w-[5%] origin-top"
-            style={{ top: `${((VB - R - 16) / (VB * 2)) * 100}%`, rotate: pointerTilt }}
+            style={{ top: `${((VB - R - 31) / (VB * 2)) * 100}%`, rotate: pointerTilt }}
           >
             <svg viewBox="0 0 18 30" className="w-full overflow-visible drop-shadow-[0_0_8px_#3cfffc99]">
               <path d="M9 30 L0 0 L18 0 Z" fill={ICE} stroke={AQUA} strokeWidth="1.2" />
@@ -369,10 +378,33 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
         </motion.div>
       </div>
 
-      <p className="text-xs tracking-wide text-ice/50">Tap Spin, or drag the wheel and release</p>
+      {/* upright readout of the segment under the pointer */}
+      <ReadoutLabel prize={prizes[current]} faces={faces} landed={phase === "landed"} />
+
+      <p className="text-[13px] tracking-wide text-ice/70">Tap Spin, or drag the wheel and release</p>
       <p aria-live="polite" className="sr-only">
         {message}
       </p>
+    </div>
+  );
+}
+
+function ReadoutLabel({ prize, faces, landed }: { prize: PublicPrize; faces: WheelFaces; landed: boolean }) {
+  const Icon = faces === "gifts" ? Gift : PRIZE_ICONS[prize.icon];
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        "glass relative flex min-w-56 items-center justify-center gap-3 rounded-full px-5 py-2.5 transition-shadow duration-500",
+        landed && "shadow-[0_0_30px_-6px_#3cfffc]",
+      )}
+    >
+      <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-ice/70">
+        {landed ? "Result" : "Pointer"}
+      </span>
+      <span className="h-4 w-px bg-white/20" />
+      <Icon className="size-5 shrink-0 text-aqua" strokeWidth={1.9} />
+      <span className="text-base font-semibold text-white">{faces === "gifts" ? "Mystery gift" : prize.short}</span>
     </div>
   );
 }

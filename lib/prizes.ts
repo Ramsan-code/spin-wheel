@@ -20,7 +20,7 @@ export type IconKey =
 export type Prize = {
   id: string;
   name: string;
-  /** Short label printed on the wheel (keep to ~13 characters). */
+  /** Short label printed on the wheel (keep to 11 characters or fewer). */
   short: string;
   description: string;
   icon: IconKey;
@@ -63,7 +63,7 @@ export const PRIZES: Prize[] = [
   {
     id: "strategy-session",
     name: "1:1 Strategy Session",
-    short: "Strategy Call",
+    short: "1:1 Call",
     description: "30 minutes with one of our market analysts to review your plan.",
     icon: "session",
     from: "#1a2240",
@@ -107,7 +107,7 @@ export const PRIZES: Prize[] = [
   {
     id: "econ-calendar",
     name: "Economic Calendar Pro",
-    short: "Calendar Pro",
+    short: "Calendar",
     description: "Real-time event alerts and consensus forecasts for 30 days.",
     icon: "calendar",
     from: "#142a52",
