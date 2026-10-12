@@ -62,7 +62,12 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
             transition={{ delay: 0.55, type: "spring", stiffness: 160, damping: 14 }}
             className="relative grid size-36 place-items-center rounded-full border border-white/50 bg-white/20 shadow-[inset_0_2px_0_#ffffffaa,0_30px_60px_-20px_#0008] backdrop-blur-md sm:size-44"
           >
-            <Icon aria-hidden className="size-16 text-white drop-shadow-lg sm:size-20" strokeWidth={1.75} />
+            {prize.image ? (
+              // eslint-disable-next-line @next/next/no-img-element -- prize art from /public, fixed size
+              <img src={prize.image} alt="" className="size-28 object-contain drop-shadow-lg sm:size-32" />
+            ) : (
+              <Icon aria-hidden className="size-16 text-white drop-shadow-lg sm:size-20" strokeWidth={1.75} />
+            )}
           </motion.div>
 
           {/* The wipe panel: covers the visual, then slides away. */}

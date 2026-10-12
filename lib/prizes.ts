@@ -29,6 +29,12 @@ export type Prize = {
   to: string;
   /** false = "no prize" segment. */
   win: boolean;
+  /**
+   * Optional picture of the prize, e.g. "/prizes/hoodie.png" (put the file in
+   * public/prizes). Shown on the wheel in "prizes" mode and on the final reveal.
+   * Transparent PNG or SVG, roughly square, works best.
+   */
+  image?: string;
   /** Relative odds. Kept on the server. */
   weight: number;
 };

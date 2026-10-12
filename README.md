@@ -1,6 +1,6 @@
 # Spin to Unlock
 
-A liquid-glass prize "card wheel" for Next.js 16 (App Router, React 19, TypeScript),
+A liquid-glass round prize wheel for Next.js 16 (App Router, React 19, TypeScript),
 built with Tailwind CSS 4, shadcn/ui, Motion (`motion/react`) and Lucide icons.
 
 ```bash
@@ -13,13 +13,23 @@ npm run dev   # http://localhost:3000
 | # | Stage | Inspired by (SVGator templates) | File |
 |---|---|---|---|
 | 1 | Welcome | Liquid glass marketing intro, title card | `components/spin/intro-scene.tsx` |
-| 2 | Spin wheel | Liquid glass rotating fan of promo cards | `components/spin/card-wheel.tsx` |
-| 3 | Shuffle ("confuse" before the win) | Liquid glass single card slider | `components/spin/shuffle-scene.tsx` |
-| 4 | Final reveal | Split view product showcase + image reveal effect | `components/spin/reveal-scene.tsx` |
+| 2 | Round gift wheel | Custom SVG wheel (gift on every segment) | `components/spin/prize-wheel.tsx` |
+| 3 | Gift box opens | Reward gift box animation | `components/spin/gift-box-scene.tsx` |
+| 4 | Product reveal | Product showcase, image reveal effect | `components/spin/reveal-scene.tsx` |
 
-The wheel shows face-down "mystery" cards so the shuffle in stage 3 keeps the
-prize secret. Set `WHEEL_FACES = "prizes"` in `spin-experience.tsx` to show the
-prizes on the wheel instead. Returning visitors go straight to stage 4.
+Options in `components/spin/spin-experience.tsx`:
+
+- `WHEEL_FACES = "gifts"` (default) draws a gift box on every segment, so the prize
+  stays a surprise until stage 3. `"prizes"` shows each prize's image or icon + name.
+- `SHOW_SHUFFLE = true` adds the card-slider shuffle
+  (`shuffle-scene.tsx`, liquid glass single card slider) between stages 2 and 3.
+
+**Prize images:** add a picture to `public/prizes/` and set `image: "/prizes/name.png"`
+on that prize in `lib/prizes.ts`. It appears on the gift-box and reveal stages (and on the
+wheel in `"prizes"` mode). Transparent, roughly square PNG or SVG works best. Without an
+image, the prize's Lucide icon is used.
+
+Returning visitors go straight to stage 4.
 
 All animation is written in code (no video files), so the wheel can land on any
 prize the server chooses.
@@ -40,8 +50,8 @@ prize the server chooses.
 
 ## Interaction
 
-- Spin button, or drag / flick the cards (mouse and touch). A fast flick spins in
-  that direction.
+- Tap the Spin hub, or drag the wheel around and let go (mouse and touch). A fast
+  flick spins in that direction. The pointer flicks back on every segment.
 - Tick and win sounds are synthesised with Web Audio (no files), with a mute toggle.
   Light haptic tick on Android.
 - `prefers-reduced-motion`: the wheel jumps to the result and transform animations
@@ -51,9 +61,9 @@ prize the server chooses.
 ## Performance notes
 
 - The wheel is one GPU-composited `rotate` driven by a MotionValue, so React does
-  not re-render per frame (only when a new card passes the pointer).
-- Wheel cards use `glass-lite` (no `backdrop-filter`); real backdrop blur (`glass`)
-  is used only on elements that do not move.
+  not re-render per frame.
+- Only the segment layer rotates; the glass rim, lights, gloss and hub are static, so
+  backdrop blur (`glass`) never sits on a moving layer.
 
 ## Before production
 

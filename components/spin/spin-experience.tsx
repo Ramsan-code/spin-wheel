@@ -5,24 +5,28 @@ import { AnimatePresence, MotionConfig, motion } from "motion/react";
 
 import { resetSpin } from "@/app/actions";
 import type { PublicPrize } from "@/lib/prizes";
-import { CardWheel, type WheelFaces } from "./card-wheel";
 import { EASE_OUT_EXPO } from "./easing";
+import { GiftBoxScene } from "./gift-box-scene";
 import { IntroScene } from "./intro-scene";
+import { PrizeWheel, type WheelFaces } from "./prize-wheel";
 import { RevealScene } from "./reveal-scene";
 import { ShuffleScene } from "./shuffle-scene";
 import { useWheelSound } from "./use-wheel-sound";
 
 /**
- * The four stages, in order:
- *   1. intro   – welcome title card      (SVGator: liquid glass marketing intro)
- *   2. wheel   – spin the card wheel     (SVGator: rotating fan of promo cards)
- *   3. shuffle – "confuse" before the win (SVGator: liquid glass single card slider)
- *   4. reveal  – final prize showcase    (SVGator: split view + image reveal)
+ * Stage order:
+ *   1. intro   – welcome title card         (SVGator: liquid glass marketing intro)
+ *   2. wheel   – round wheel of gifts        (custom SVG + Motion)
+ *   (optional) shuffle – single card slider (SVGator: liquid glass single card slider)
+ *   3. gift    – gift box bounces open       (SVGator: reward gift box)
+ *   4. reveal  – final prize showcase        (SVGator: product showcase image reveal)
  */
-type Scene = "intro" | "wheel" | "shuffle" | "reveal";
+type Scene = "intro" | "wheel" | "shuffle" | "gift" | "reveal";
 
-/** "mystery" keeps the prize secret until the shuffle; "prizes" shows them on the wheel. */
-const WHEEL_FACES: WheelFaces = "mystery";
+/** "gifts" = a gift box on every segment; "prizes" = prize image/icon + name. */
+const WHEEL_FACES: WheelFaces = "gifts";
+/** Turn on to add the card-slider shuffle between the wheel and the gift box. */
+const SHOW_SHUFFLE = false;
 
 type Props = {
   prizes: PublicPrize[];
@@ -37,17 +41,16 @@ type Props = {
  * prize odds) stays on the server.
  */
 export function SpinExperience({ prizes, campaign, previousIndex, showDevReset }: Props) {
-  // Returning visitors skip straight to stage 4.
+  // Returning visitors skip straight to the final reveal.
   const [scene, setScene] = useState<Scene>(previousIndex === null ? "intro" : "reveal");
   const [winIndex, setWinIndex] = useState<number | null>(previousIndex);
   const [returning, setReturning] = useState(previousIndex !== null);
   const [resetting, startReset] = useTransition();
   const [soundOn, setSoundOn] = useState(true);
-  // Shared by stages 2 and 3, so the audio unlocked by the Spin click keeps working.
+  // Shared by all stages, so audio unlocked by the Spin click keeps working.
   const sound = useWheelSound(soundOn);
 
   const exit = { opacity: 0, scale: 0.96, filter: "blur(8px)", transition: { duration: 0.35 } };
-
   const enter = {
     initial: { opacity: 0, scale: 1.03 },
     animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: EASE_OUT_EXPO } },
@@ -55,10 +58,10 @@ export function SpinExperience({ prizes, campaign, previousIndex, showDevReset }
 
   const handleLanded = useCallback((index: number) => {
     setWinIndex(index);
-    setScene("shuffle");
+    setScene(SHOW_SHUFFLE ? "shuffle" : "gift");
   }, []);
-
-  const handleShuffleDone = useCallback(() => setScene("reveal"), []);
+  const handleShuffleDone = useCallback(() => setScene("gift"), []);
+  const handleGiftDone = useCallback(() => setScene("reveal"), []);
 
   const handleReset = () =>
     startReset(async () => {
@@ -87,7 +90,7 @@ export function SpinExperience({ prizes, campaign, previousIndex, showDevReset }
             aria-label="Spin the wheel"
             className="flex min-h-dvh items-center"
           >
-            <CardWheel
+            <PrizeWheel
               prizes={prizes}
               faces={WHEEL_FACES}
               sound={sound}
@@ -99,13 +102,14 @@ export function SpinExperience({ prizes, campaign, previousIndex, showDevReset }
         )}
 
         {scene === "shuffle" && winIndex !== null && (
-          <motion.section key="shuffle" {...enter} exit={exit} aria-label="Revealing your prize">
-            <ShuffleScene
-              prizes={prizes}
-              winIndex={winIndex}
-              sound={sound}
-              onDone={handleShuffleDone}
-            />
+          <motion.section key="shuffle" {...enter} exit={exit} aria-label="Shuffling prizes">
+            <ShuffleScene prizes={prizes} winIndex={winIndex} sound={sound} onDone={handleShuffleDone} />
+          </motion.section>
+        )}
+
+        {scene === "gift" && winIndex !== null && (
+          <motion.section key="gift" {...enter} exit={exit} aria-label="Opening your gift">
+            <GiftBoxScene prize={prizes[winIndex]} sound={sound} onDone={handleGiftDone} />
           </motion.section>
         )}
 
