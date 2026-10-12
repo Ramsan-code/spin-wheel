@@ -133,7 +133,7 @@ export const PRIZES: Prize[] = [
     description: "Access to our members-only weekly market webinar.",
     icon: "webinar",
     from: "#2d2a1e",
-    to: "#8a7340",
+    to: "#b8923a",
     win: true,
     weight: 10,
   },
