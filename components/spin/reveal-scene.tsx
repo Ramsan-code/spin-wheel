@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
-import { ArrowRight, PartyPopper, RefreshCw } from "lucide-react";
+import { motion, type Variants } from "motion/react";
+import { ArrowRight, BadgeCheck, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { PublicPrize } from "@/lib/prizes";
@@ -21,7 +21,6 @@ type Props = {
 // product showcase") whose visual side is uncovered by a sliding panel
 // (after "product showcase – image reveal effect").
 export function RevealScene({ prize, returning, showDevReset, onReset, resetting }: Props) {
-  const reduce = useReducedMotion();
   const Icon = PRIZE_ICONS[prize.icon];
 
   const text: Variants = {
@@ -35,8 +34,6 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
 
   return (
     <div className="relative flex min-h-dvh items-center justify-center px-4 py-12">
-      {/* Only after a live spin (never server-rendered), so reading reduce is safe. */}
-      {prize.win && !returning && !reduce && <Burst colors={[prize.from, prize.to, "#ddf5ff"]} />}
 
       <motion.article
         initial={{ opacity: 0, scale: 0.92, rotateX: 18, y: 30 }}
@@ -46,6 +43,14 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
         aria-labelledby="prize-title"
       >
         <span className="glass-sheen" />
+        {/* one slow light sweep across the card */}
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 z-20 w-1/3 -skew-x-12 bg-[linear-gradient(90deg,transparent,#ffffff1f,transparent)]"
+          initial={{ left: "-40%" }}
+          animate={{ left: "140%" }}
+          transition={{ delay: 1.4, duration: 1.4, ease: "easeInOut" }}
+        />
 
         {/* Visual half */}
         <div
@@ -53,8 +58,8 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
           style={{ background: `linear-gradient(150deg, ${prize.from}, ${prize.to})` }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,#ffffff66,transparent_55%)]" />
-          <div className="absolute -bottom-10 -right-10 size-48 rounded-full border-[18px] border-white/25" />
-          <div className="absolute left-8 top-8 size-10 rotate-12 rounded-xl border border-white/40 bg-white/20" />
+          <div className="absolute -bottom-12 -right-12 size-56 rounded-full border border-white/20" />
+          <div className="absolute -bottom-4 -right-4 size-32 rounded-full border border-white/10" />
 
           <motion.div
             initial={{ scale: 0.6, rotate: -20, opacity: 0 }}
@@ -62,14 +67,19 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
             transition={{ delay: 0.55, type: "spring", stiffness: 160, damping: 14 }}
             className="relative grid size-36 place-items-center rounded-full border border-white/50 bg-white/20 shadow-[inset_0_2px_0_#ffffffaa,0_30px_60px_-20px_#0008] backdrop-blur-md sm:size-44"
           >
-            <Icon aria-hidden className="size-16 text-white drop-shadow-lg sm:size-20" strokeWidth={1.75} />
+            {prize.image ? (
+              // eslint-disable-next-line @next/next/no-img-element -- prize art from /public, fixed size
+              <img src={prize.image} alt="" className="size-28 object-contain drop-shadow-lg sm:size-32" />
+            ) : (
+              <Icon aria-hidden className="size-16 text-white drop-shadow-lg sm:size-20" strokeWidth={1.75} />
+            )}
           </motion.div>
 
           {/* The wipe panel: covers the visual, then slides away. */}
           {/* scaleX is a transform, so reduced-motion users see it removed instantly */}
           <motion.div
             aria-hidden
-            className="absolute inset-0 origin-right bg-[linear-gradient(120deg,#ff6ad5,#8b7bff_55%,#3cfffc)]"
+            className="absolute inset-0 origin-right bg-[linear-gradient(120deg,#0b1220,#16304a_60%,#1c7c8c)]"
             initial={{ scaleX: 1 }}
             animate={{ scaleX: 0 }}
             transition={{ delay: 0.35, duration: 0.9, ease: EASE_IN_OUT }}
@@ -85,8 +95,8 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
             animate="show"
             className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-aqua"
           >
-            {prize.win && <PartyPopper aria-hidden className="size-4" />}
-            {prize.win ? (returning ? "Your prize" : "You won") : "So close"}
+            {prize.win && <BadgeCheck aria-hidden className="size-4" />}
+            {prize.win ? (returning ? "Your reward" : "Reward unlocked") : "Result"}
           </motion.p>
 
           <motion.h2
@@ -155,36 +165,6 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
           )}
         </div>
       </motion.article>
-    </div>
-  );
-}
-
-/** A small, one-shot burst of glass chips. 20 elements, transforms only. */
-function Burst({ colors }: { colors: string[] }) {
-  const chips = Array.from({ length: 20 }, (_, i) => {
-    const angle = (i / 20) * Math.PI * 2;
-    const dist = 180 + (i % 5) * 45;
-    return {
-      x: Math.cos(angle) * dist,
-      y: Math.sin(angle) * dist * 0.75,
-      rotate: (i % 2 ? 1 : -1) * (90 + i * 17),
-      color: colors[i % colors.length],
-      size: 8 + (i % 4) * 4,
-    };
-  });
-
-  return (
-    <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 z-20">
-      {chips.map((c, i) => (
-        <motion.span
-          key={i}
-          className="absolute rounded-[3px] border border-white/50"
-          style={{ width: c.size, height: c.size, background: c.color }}
-          initial={{ x: 0, y: 0, opacity: 0, scale: 0.4, rotate: 0 }}
-          animate={{ x: c.x, y: c.y, opacity: [0, 1, 1, 0], scale: 1, rotate: c.rotate }}
-          transition={{ delay: 0.5, duration: 1.6, ease: EASE_OUT_EXPO, opacity: { delay: 0.5, duration: 1.6, times: [0, 0.1, 0.7, 1] } }}
-        />
-      ))}
     </div>
   );
 }

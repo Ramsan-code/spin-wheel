@@ -64,3 +64,5 @@ export function useWheelSound(enabled: boolean) {
 
   return { unlock, tick, chime };
 }
+
+export type WheelSound = ReturnType<typeof useWheelSound>;
