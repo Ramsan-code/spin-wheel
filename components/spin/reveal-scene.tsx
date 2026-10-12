@@ -33,7 +33,7 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-dvh items-center justify-center px-4 py-12 short:py-3">
       <motion.article
         initial={{ opacity: 0, scale: 0.92, rotateX: 18, y: 30 }}
         animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
@@ -53,12 +53,12 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
 
         {/* Visual half */}
         <div
-          className="relative grid min-h-64 place-items-center overflow-hidden md:min-h-[26rem]"
+          className="relative grid min-h-64 place-items-center overflow-hidden md:min-h-[26rem] short:md:min-h-0"
           style={{ background: `linear-gradient(150deg, ${prize.from}, ${prize.to})` }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,#ffffff66,transparent_55%)]" />
-          <div className="absolute -bottom-12 -right-12 size-56 rounded-full border border-white/20" />
-          <div className="absolute -bottom-4 -right-4 size-32 rounded-full border border-white/10" />
+          <div aria-hidden className="absolute -bottom-12 -right-12 size-56 rounded-full border border-white/20" />
+          <div aria-hidden className="absolute -bottom-4 -right-4 size-32 rounded-full border border-white/10" />
 
           <motion.div
             initial={{ scale: 0.6, rotate: -20, opacity: 0 }}
@@ -86,7 +86,7 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
         </div>
 
         {/* Text half */}
-        <div className="relative flex flex-col justify-center gap-4 p-7 sm:p-10">
+        <div className="relative flex flex-col justify-center gap-4 p-7 sm:p-10 short:gap-2 short:sm:p-6">
           <motion.p
             custom={0}
             variants={text}
@@ -104,7 +104,7 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
             variants={text}
             initial="hidden"
             animate="show"
-            className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-5xl"
+            className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-5xl short:sm:text-3xl"
           >
             {prize.name}
           </motion.h2>

@@ -52,7 +52,7 @@ export function GiftBoxScene({ prize, sound, onDone }: Props) {
   }, [reduce, chime, prize.win, onDone]);
 
   return (
-    <div className="relative flex min-h-dvh flex-col items-center justify-center gap-10 px-4 py-12">
+    <div className="relative flex min-h-dvh flex-col items-center justify-center gap-10 px-4 py-12 short:gap-2 short:py-2">
       {/* stage spotlights (after the SVGator "logo reveal – stage spotlights") */}
       <Spotlights />
 
@@ -60,7 +60,7 @@ export function GiftBoxScene({ prize, sound, onDone }: Props) {
         {opened ? (prize.win ? "Your reward" : "Result") : "Unlocking your reward"}
       </p>
 
-      <div className="relative grid size-72 place-items-center sm:size-80">
+      <div className="relative grid size-72 place-items-center sm:size-80 short:sm:size-72">
         {/* soft beam + halo once open */}
         <motion.div
           aria-hidden
