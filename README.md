@@ -13,7 +13,7 @@ npm run dev   # http://localhost:3000
 | # | Stage | Inspired by (SVGator templates) | File |
 |---|---|---|---|
 | 1 | Welcome | Liquid glass marketing intro, title card | `components/spin/intro-scene.tsx` |
-| 2 | Prize wheel | Custom SVG dial wheel (tinted segments, upright labels, tick bezel) | `components/spin/prize-wheel.tsx` |
+| 2 | Prize wheel | Custom SVG dial wheel (gift + name per segment, upright labels, tick bezel) | `components/spin/prize-wheel.tsx` |
 | 3 | Gift box opens | Reward gift box + stage spotlights | `components/spin/gift-box-scene.tsx` |
 | 4 | Product reveal | Product showcase, image reveal effect | `components/spin/reveal-scene.tsx` |
 

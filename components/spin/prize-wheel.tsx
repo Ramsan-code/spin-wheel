@@ -10,19 +10,19 @@ import {
   useTransform,
   type PanInfo,
 } from "motion/react";
-import { Gift, Loader2, Volume2, VolumeX } from "lucide-react";
+import { Loader2, Volume2, VolumeX } from "lucide-react";
 
 import { spinWheel, type SpinResult } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import type { PublicPrize } from "@/lib/prizes";
 import { cn } from "@/lib/utils";
 import { EASE_SPIN } from "./easing";
-import { PRIZE_ICONS } from "./icons";
+import { WheelGift } from "./gift-art";
 import type { WheelSound } from "./use-wheel-sound";
 
 /**
- * "prizes" (default): each segment shows the prize's line icon (or image) and name.
- * "gifts":  every segment shows the same gift icon, so the prize stays a surprise.
+ * "prizes" (default): each segment shows a gift in the prize's colour (or the prize image) and its name.
+ * "gifts":  gifts in alternating colours and no names, so the prize stays a surprise.
  */
 export type WheelFaces = "prizes" | "gifts";
 
@@ -33,6 +33,8 @@ const VB = 210; // viewBox half-size for the full dial
 const R = 170; // segment radius
 const INSET = `${((VB - R) / (VB * 2)) * 100}%`; // where the rotating disc sits
 const SEG_FILLS = ["#101b31", "#0c1424"];
+/** Gift colours when faces = "gifts" (no prize names on the wheel). */
+const GIFT_TINTS = ["#1c7c8c", "#55488a", "#2b5aa8", "#b8923a"];
 const ICE = "#ddf5ff";
 const AQUA = "#3cfffc";
 
@@ -269,6 +271,17 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
           {/* rotating disc */}
           <motion.div className="absolute rounded-full" style={{ inset: INSET, rotate, willChange: "transform" }}>
             <svg viewBox={`${-R} ${-R} ${R * 2} ${R * 2}`} className="size-full overflow-visible" aria-hidden>
+              <defs>
+                <linearGradient id="pw-gshade" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stopColor="#ffffff" stopOpacity="0.16" />
+                  <stop offset="0.45" stopColor="#ffffff" stopOpacity="0" />
+                  <stop offset="1" stopColor="#000000" stopOpacity="0.28" />
+                </linearGradient>
+                <linearGradient id="pw-glid" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#ffffff" stopOpacity="0.28" />
+                  <stop offset="1" stopColor="#ffffff" stopOpacity="0.02" />
+                </linearGradient>
+              </defs>
               {/* segments: each prize gets its own muted tint under a navy veil */}
               {prizes.map((prize, i) => {
                 const a = i * seg;
@@ -296,35 +309,30 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
                   shadow, and keeps text sharp over any tint. */}
               {prizes.map((prize, i) => {
                 const p = polar(R * 0.63, i * seg);
-                const Icon = faces === "gifts" ? Gift : PRIZE_ICONS[prize.icon];
                 const dim = faces === "prizes" && !prize.win;
                 return (
                   <g key={prize.id} transform={`translate(${p.x} ${p.y})`} opacity={dim ? 0.8 : 1}>
                     <motion.g style={{ rotate: counter }}>
                       {/* invisible box centred on 0,0 so the label turns about its centre */}
-                      <rect x={-44} y={-30} width={88} height={60} fill="none" />
+                      <rect x={-44} y={-22} width={88} height={66} fill="none" />
                       {faces === "prizes" && prize.image ? (
                         <image
                           href={prize.image}
-                          x={-15}
-                          y={-30}
-                          width={30}
-                          height={30}
+                          x={-20}
+                          y={-20}
+                          width={40}
+                          height={40}
                           preserveAspectRatio="xMidYMid meet"
                         />
                       ) : (
-                        <Icon
-                          x={-12}
-                          y={faces === "prizes" ? -26 : -12}
-                          width={24}
-                          height={24}
-                          color={AQUA}
-                          strokeWidth={1.9}
-                        />
+                        // gift in the prize's colour (gift option 1), centred above the name
+                        <g transform="scale(0.44) translate(-50 -56)">
+                          <WheelGift box={faces === "prizes" ? prize.to : GIFT_TINTS[i % GIFT_TINTS.length]} ribbon={AQUA} />
+                        </g>
                       )}
                       {faces === "prizes" && (
                         <text
-                          y={16}
+                          y={30}
                           textAnchor="middle"
                           dominantBaseline="middle"
                           fill="#ffffff"
