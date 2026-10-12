@@ -7,8 +7,9 @@ import { EASE_IN_OUT } from "./easing";
 /**
  * Stage spotlights behind the gift-box stage (after the SVGator "logo reveal –
  * stage spotlights" template), kept calm for a financial brand:
- * two cool beams sweep once from the top corners, cross, and settle on the
- * gift, then drift very slightly. Only transforms/opacity animate, so it stays
+ * three cool beams. The two side beams sweep in from the top corners and cross,
+ * then a centre beam drops straight down; all three settle on the gift and
+ * drift very slightly. Only transforms/opacity animate, so it stays
  * smooth on phones. With reduced motion the beams simply appear in place.
  */
 export function Spotlights() {
@@ -16,6 +17,7 @@ export function Spotlights() {
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       <Beam side="left" />
       <Beam side="right" />
+      <Beam side="center" />
     </div>
   );
 }
@@ -44,27 +46,36 @@ export function SpotlightFloor() {
   );
 }
 
-function Beam({ side }: { side: "left" | "right" }) {
-  const s = side === "left" ? 1 : -1;
+type Side = "left" | "center" | "right";
 
-  // Sweep in from outside, cross past the centre, settle on the card.
+// Where each beam hangs, how it sweeps in (start → overshoot → rest, in degrees)
+// and when it starts. Three beams add up, so each is a little softer than two.
+const BEAMS: Record<Side, { left: string; width: string; sweep: [number, number, number]; delay: number; drift: number }> = {
+  left: { left: "20%", width: "70vmin", sweep: [50, -40, -30], delay: 0, drift: 2.5 },
+  right: { left: "80%", width: "70vmin", sweep: [-50, 40, 30], delay: 0, drift: -2.5 },
+  center: { left: "50%", width: "58vmin", sweep: [-24, 8, 0], delay: 0.35, drift: 1.5 },
+};
+
+function Beam({ side }: { side: Side }) {
+  const b = BEAMS[side];
+
   return (
     <motion.div
-      className="absolute top-[-8%] h-[135vh] w-[70vmin] -translate-x-1/2 origin-top"
-      style={{ left: side === "left" ? "22%" : "78%", willChange: "transform" }}
-      initial={{ rotate: s * 50, opacity: 0 }}
-      animate={{ rotate: [s * 50, s * -40, s * -28], opacity: [0, 1, 1] }}
-      transition={{ duration: 1.7, ease: EASE_IN_OUT, times: [0, 0.6, 1] }}
+      className="absolute top-[-8%] h-[135vh] -translate-x-1/2 origin-top"
+      style={{ left: b.left, width: b.width, willChange: "transform" }}
+      initial={{ rotate: b.sweep[0], opacity: 0 }}
+      animate={{ rotate: b.sweep, opacity: [0, 1, 1] }}
+      transition={{ delay: b.delay, duration: 1.7, ease: EASE_IN_OUT, times: [0, 0.6, 1] }}
     >
       {/* inner layer: barely-there drift after the sweep */}
       {/* blur sits on the parent: CSS applies filter before clip-path, so blurring
           the clipped element itself would leave hard edges */}
       <motion.div
         className="size-full origin-top blur-[18px]"
-        animate={{ rotate: [0, s * 2.5, 0] }}
-        transition={{ delay: 1.8, duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ rotate: [0, b.drift, 0] }}
+        transition={{ delay: 1.8 + b.delay, duration: 7, repeat: Infinity, ease: "easeInOut" }}
       >
-        <div className="size-full bg-[linear-gradient(to_bottom,#ddf5ff59,#ddf5ff1f_35%,#3cfffc0d_65%,transparent)] [clip-path:polygon(47%_0,53%_0,100%_100%,0_100%)]" />
+        <div className="size-full bg-[linear-gradient(to_bottom,#ddf5ff4d,#ddf5ff1a_35%,#3cfffc0b_65%,transparent)] [clip-path:polygon(47%_0,53%_0,100%_100%,0_100%)]" />
       </motion.div>
     </motion.div>
   );
