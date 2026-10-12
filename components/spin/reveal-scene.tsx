@@ -34,7 +34,6 @@ export function RevealScene({ prize, returning, showDevReset, onReset, resetting
 
   return (
     <div className="relative flex min-h-dvh items-center justify-center px-4 py-12">
-
       <motion.article
         initial={{ opacity: 0, scale: 0.92, rotateX: 18, y: 30 }}
         animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
