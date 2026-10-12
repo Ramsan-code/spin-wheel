@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Spin to Unlock
 
-## Getting Started
-
-First, run the development server:
+A liquid-glass prize "card wheel" for Next.js 16 (App Router, React 19, TypeScript),
+built with Tailwind CSS 4, shadcn/ui, Motion (`motion/react`) and Lucide icons.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Scene | Inspired by (SVGator templates) | File |
+|---|---|---|
+| Welcome | Liquid glass marketing intro, title card | `components/spin/intro-scene.tsx` |
+| Spin | Liquid glass rotating fan of promo cards | `components/spin/card-wheel.tsx` |
+| Result | Split view product showcase + image reveal effect | `components/spin/reveal-scene.tsx` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All animation is written in code (no video files), so the wheel can land on any
+prize the server chooses.
 
-## Learn More
+## How it fits together
 
-To learn more about Next.js, take a look at the following resources:
+- `app/page.tsx` – Server Component. Reads the result cookie inside `<Suspense>`
+  (required because `cacheComponents` is on) and passes prizes **without odds**
+  to the client.
+- `app/actions.ts` – Server Actions. `spinWheel()` picks the prize with
+  `crypto.randomInt` and stores it; the client only animates to the returned index.
+  `resetSpin()` works in development only.
+- `lib/prizes.ts` – prize list, weights, campaign copy. Server-only.
+- `components/spin/spin-experience.tsx` – the single `"use client"` boundary that
+  switches scenes.
+- `components/ui/button.tsx` – shadcn/ui Button with an extra `glass` variant.
+  `components.json` is set up, so `npx shadcn@latest add <component>` works.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Interaction
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Spin button, or drag / flick the cards (mouse and touch). A fast flick spins in
+  that direction.
+- Tick and win sounds are synthesised with Web Audio (no files), with a mute toggle.
+  Light haptic tick on Android.
+- `prefers-reduced-motion`: the wheel jumps to the result and transform animations
+  are skipped (`MotionConfig reducedMotion="user"`).
+- Result is announced through an `aria-live` region; everything is keyboard-usable.
 
-## Deploy on Vercel
+## Performance notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- The wheel is one GPU-composited `rotate` driven by a MotionValue, so React does
+  not re-render per frame (only when a new card passes the pointer).
+- Wheel cards use `glass-lite` (no `backdrop-filter`); real backdrop blur (`glass`)
+  is used only on elements that do not move.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Before production
+
+1. Replace the demo cookie with a database row: signed-in user,
+   `UNIQUE(user_id, campaign_id)`, rate limiting and an audit log (see comments in
+   `app/actions.ts`).
+2. Replace placeholder prizes and the `Your Brand` text in `lib/prizes.ts`.
+3. Point the "Claim prize" link at your real claim flow.
+4. Get compliance sign-off. In the EU/UK, retail CFD clients may not be offered
+   monetary or non-monetary benefits; in the US, chance-based prizes need official
+   rules and a free way to enter.
