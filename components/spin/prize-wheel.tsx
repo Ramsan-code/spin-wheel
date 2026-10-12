@@ -192,7 +192,7 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-7 px-4 py-10">
+    <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-7 px-4 py-10 short:gap-3 short:py-3">
       <div className="flex w-full max-w-sm items-center justify-between">
         <div className="glass relative rounded-full px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-ice/80">
           <span className="glass-sheen" />1 complimentary spin
@@ -208,7 +208,8 @@ export function PrizeWheel({ prizes, faces, sound, soundOn, onToggleSound, onLan
         </Button>
       </div>
 
-      <div className="w-[min(90vw,460px)] [perspective:1200px]">
+      {/* width = smallest of: 90% of the screen, 560px, and the height left after the header and hint */}
+      <div className="w-[min(90vw,560px,max(220px,calc(100dvh-150px)))] [perspective:1200px]">
         <motion.div
           ref={wheelRef}
           role="group"

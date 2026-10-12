@@ -29,13 +29,13 @@ export function IntroScene({ brand, headline, tagline, onStart }: Props) {
   };
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center px-4 py-16">
+    <div className="relative flex min-h-dvh items-center justify-center px-4 py-16 short:py-4">
       <GlassShapes />
 
       <motion.div
         initial="hidden"
         animate="show"
-        className="relative flex w-full max-w-xl flex-col items-center gap-4 [perspective:1000px]"
+        className="relative flex w-full max-w-xl flex-col items-center gap-4 [perspective:1000px] short:gap-2"
       >
         <motion.div
           custom={0}
@@ -49,10 +49,10 @@ export function IntroScene({ brand, headline, tagline, onStart }: Props) {
         <motion.div
           custom={1}
           variants={card}
-          className="glass relative w-full rounded-[2rem] px-6 py-10 text-center sm:px-10 sm:py-14"
+          className="glass relative w-full rounded-[2rem] px-6 py-10 text-center sm:px-10 sm:py-14 short:py-5 short:sm:py-5"
         >
           <span className="glass-sheen" />
-          <h1 className="text-balance bg-[linear-gradient(120deg,#ffffff_10%,#ddf5ff_40%,#3cfffc_75%)] bg-clip-text text-5xl font-semibold tracking-tight text-transparent sm:text-7xl">
+          <h1 className="text-balance bg-[linear-gradient(120deg,#ffffff_10%,#ddf5ff_40%,#3cfffc_75%)] bg-clip-text text-5xl font-semibold tracking-tight text-transparent sm:text-7xl short:text-4xl short:sm:text-5xl">
             {headline}
           </h1>
         </motion.div>
@@ -66,7 +66,7 @@ export function IntroScene({ brand, headline, tagline, onStart }: Props) {
           {tagline}
         </motion.div>
 
-        <motion.div custom={3} variants={card} className="mt-4">
+        <motion.div custom={3} variants={card} className="mt-4 short:mt-1">
           <Button
             size="lg"
             onClick={onStart}

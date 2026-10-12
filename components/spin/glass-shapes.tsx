@@ -15,7 +15,7 @@ export function GlassShapes({ className }: { className?: string }) {
     <div aria-hidden className={cn("pointer-events-none absolute inset-0", className)}>
       {/* aqua orb */}
       <motion.div
-        className="absolute left-[6%] top-[14%] size-24 sm:left-[14%] sm:size-36"
+        className="absolute -left-[4%] top-[3%] size-20 sm:left-[14%] sm:top-[14%] sm:size-36 short:left-[2%] short:top-[4%] short:size-16"
         initial={{ rotate: 0, scale: 0.4, opacity: 0 }}
         animate={{ rotate: -180, scale: 1, opacity: 1 }}
         transition={{ duration: 0.7, ease: flipEase }}
@@ -29,7 +29,7 @@ export function GlassShapes({ className }: { className?: string }) {
 
       {/* navy torus */}
       <motion.div
-        className="absolute bottom-[16%] right-[4%] size-28 sm:right-[12%] sm:size-44"
+        className="absolute -right-[6%] bottom-[3%] size-24 sm:bottom-[16%] sm:right-[12%] sm:size-44 short:hidden"
         initial={{ rotate: 0, scale: 0.4, opacity: 0 }}
         animate={{ rotate: 180, scale: 1, opacity: 1 }}
         transition={{ duration: 0.7, ease: flipEase, delay: 0.05 }}
